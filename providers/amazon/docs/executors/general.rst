@@ -369,8 +369,8 @@ The Airflow DB needs to be initialized before it can be used and a user needs to
 Task-instance identity
 ----------------------
 
-On cores with UUID executor-key support, ECS, Batch and Lambda retain the submitted
-attempt's UUID through dispatch, adoption and completion. On older supported cores
+On Airflow versions with UUID executor-key support, ECS, Batch and Lambda retain the submitted
+attempt's UUID through dispatch, adoption and completion. On older supported Airflow versions
 they retain coordinate keys. This does not raise the provider's minimum Airflow version.
 Existing remote work is adopted using its persisted external identifier; Lambda also
 accepts the older serialized coordinate transport when it matches the adopted attempt.

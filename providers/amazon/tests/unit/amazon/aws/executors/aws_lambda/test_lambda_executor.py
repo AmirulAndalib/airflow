@@ -1110,7 +1110,7 @@ class TestAwsLambdaExecutor:
 
     @pytest.mark.skipif(not AIRFLOW_V_3_3_PLUS, reason="Test requires Airflow 3.3+")
     def test_legacy_adoption_callback_identifier(self, mock_executor, monkeypatch):
-        """Retain the callback identifier fallback used by older cores."""
+        """Retain the callback identifier fallback used by older Airflow versions."""
         monkeypatch.setattr(AwsLambdaExecutor, "supports_task_instance_uuid", False)
         callback_id = "callback_123"
 
