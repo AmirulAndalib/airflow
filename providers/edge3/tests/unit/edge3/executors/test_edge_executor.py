@@ -59,7 +59,8 @@ pytestmark = pytest.mark.db_test
         pytest.param(
             True,
             marks=pytest.mark.skipif(
-                not hasattr(EdgeExecutor, "get_task_key"), reason="UUID executor contract requires new core"
+                not hasattr(EdgeExecutor, "get_task_key"),
+                reason="UUID executor contract requires a supporting Airflow version",
             ),
         ),
     ],
@@ -1030,7 +1031,8 @@ class TestQueueWorkload(_WorkloadFactory):
 
 
 @pytest.mark.skipif(
-    not hasattr(EdgeExecutor, "get_task_key"), reason="UUID executor contract requires new core"
+    not hasattr(EdgeExecutor, "get_task_key"),
+    reason="UUID executor contract requires a supporting Airflow version",
 )
 class TestUUIDTaskIdentity(_WorkloadFactory):
     @pytest.fixture(autouse=True)
