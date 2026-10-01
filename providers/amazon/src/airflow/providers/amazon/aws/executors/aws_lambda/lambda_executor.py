@@ -21,7 +21,7 @@ import time
 import warnings
 from collections import deque
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias, cast
 from uuid import UUID
 
 from boto3.session import NoCredentialsError
@@ -576,6 +576,7 @@ class AwsLambdaExecutor(BaseExecutor):
             "lambda_executor.adopt_task_instances.duration", tags=prune_dict({"team_name": self.team_name})
         ):
             adopted_tis: list[TaskInstance] = []
+            workload_key: WorkloadKey
 
             if serialized_workload_keys := [
                 (ti, ti.external_executor_id) for ti in tis if ti.external_executor_id
@@ -616,7 +617,7 @@ class AwsLambdaExecutor(BaseExecutor):
                                 ser_workload_key,
                                 str(e),
                             )
-                            workload_key = ser_workload_key
+                            workload_key = cast("WorkloadKey", ser_workload_key)
 
                     self.running_workloads[ser_workload_key] = workload_key
                     adopted_tis.append(ti)

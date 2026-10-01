@@ -23,9 +23,7 @@ from uuid import UUID
 from airflow.executors.base_executor import BaseExecutor
 
 if hasattr(BaseExecutor, "get_task_key"):
-    from airflow.executors.workloads.types import TaskInstanceUuid
-else:
-    TaskInstanceUuid = UUID
+    from airflow.executors.workloads.types import TaskInstanceUuid  # noqa: TC001
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

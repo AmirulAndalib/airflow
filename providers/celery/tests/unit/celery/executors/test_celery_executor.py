@@ -418,10 +418,7 @@ class TestCeleryExecutor:
             yield app.control.revoke
 
     @pytest.mark.backend("mysql", "postgres")
-    @mock.patch("airflow.providers.celery.executors.celery_executor.CeleryExecutor.fail")
-    def test_cleanup_stuck_queued_tasks(
-        self, mock_fail, clean_dags_dagruns_and_dagbundles, testing_dag_bundle
-    ):
+    def test_cleanup_stuck_queued_tasks(self, mocker, clean_dags_dagruns_and_dagbundles, testing_dag_bundle):
         start_date = timezone.utcnow() - timedelta(days=2)
 
         with DAG("test_cleanup_stuck_queued_tasks_failed", schedule=None) as dag:
@@ -441,6 +438,7 @@ class TestCeleryExecutor:
         with _prepare_app() as app:
             app.control.revoke = mock.MagicMock()
             executor = celery_executor.CeleryExecutor()
+            mock_fail = mocker.patch.object(executor, "fail", autospec=True)
             executor.job_id = 1
             if hasattr(executor, "_register_task"):
                 executor._register_task(ti)
@@ -453,7 +451,7 @@ class TestCeleryExecutor:
             executor.sync()
         assert executor.workloads == {}
         app.control.revoke.assert_called_once_with("231")
-        mock_fail.assert_called()
+        mock_fail.assert_called_once_with(key)
         assert not executor.has_task(ti)
 
     @pytest.mark.backend("mysql", "postgres")
