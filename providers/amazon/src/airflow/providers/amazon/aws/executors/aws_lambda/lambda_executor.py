@@ -311,7 +311,7 @@ class AwsLambdaExecutor(BaseExecutor):
         """
         Save the workload to be executed in the next sync by inserting the commands into a queue.
 
-        :param key: Task UUID (coordinate key on older cores) or callback identifier.
+        :param key: Task UUID (coordinate key on older Airflow versions) or callback identifier.
         :param command: The workload command or serialized shell command to execute.
         :param executor_config:  (Unused) to keep the same signature as the base.
         :param queue: (Unused) to keep the same signature as the base.
@@ -566,7 +566,7 @@ class AwsLambdaExecutor(BaseExecutor):
         Adopt task instances which have an external_executor_id (the serialized workload key).
 
         Preserve the exact external_executor_id used in SQS messages, including coordinate keys
-        submitted before upgrading to UUID-capable core.
+        submitted before upgrading to an Airflow version with UUID executor-key support.
 
         Anything that is not adopted will be cleared by the scheduler and becomes eligible for re-scheduling.
 

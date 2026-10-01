@@ -282,8 +282,8 @@ Since the tasks are run independently of the executor and report results directl
 Task-instance identity
 ----------------------
 
-On cores with UUID executor-key support, task pods carry a ``task_instance_id``
+On Airflow versions with UUID executor-key support, task pods carry a ``task_instance_id``
 annotation. Watcher events, adoption and revocation use the submitted attempt's UUID.
 Pre-upgrade task pods can be adopted when their original serialized workload contains
 that UUID. Pods without a recoverable attempt identity are not adopted by a UUID-capable
-executor. Older supported cores retain coordinate keys and their existing adoption behavior.
+executor. Older supported Airflow versions retain coordinate keys and their existing adoption behavior.

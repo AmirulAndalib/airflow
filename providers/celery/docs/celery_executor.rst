@@ -279,7 +279,7 @@ itself because it needs a very specific environment and security rights).
 Task-instance identity
 ----------------------
 
-CeleryExecutor uses task-instance UUIDs for scheduler bookkeeping when the core supports
+CeleryExecutor uses task-instance UUIDs for scheduler bookkeeping when the Airflow version supports
 them, including adoption and revocation. Celery's external task identifier remains the
 transport identity, so existing work can be adopted after a scheduler upgrade. Older
-supported cores retain coordinate keys; the provider's minimum Airflow version is unchanged.
+supported Airflow versions retain coordinate keys; the provider's minimum Airflow version is unchanged.
