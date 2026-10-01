@@ -67,7 +67,7 @@ def _run(tmp_path, *, coordinator: str = "fake") -> TaskHandlerParsingResult:
 def test_returns_every_handler_the_runtime_registers(mock_parse_task_handler, tmp_path):
     def reply(request, comms):
         # Echo what the request carries, so the test can check it.
-        param = TaskHandlerParam(name=request.bundle_name, value_schema={"type": "string"}, required=True)
+        param = TaskHandlerParam(name=request.bundle_name, value_schema={"type": "string"})
         return TaskHandlerParsingResult(
             fileloc=request.file,
             task_handlers={
@@ -84,7 +84,7 @@ def test_returns_every_handler_the_runtime_registers(mock_parse_task_handler, tm
 
     result = _run(tmp_path)
 
-    param = TaskHandlerParam(name="task-handlers", value_schema={"type": "string"}, required=True)
+    param = TaskHandlerParam(name="task-handlers", value_schema={"type": "string"})
     declaration = TaskHandlerDeclaration(task_id=os.fspath(tmp_path), binding="positional", params=[param])
     assert result == TaskHandlerParsingResult(
         fileloc=os.fspath(tmp_path / "etl.artifact"),
