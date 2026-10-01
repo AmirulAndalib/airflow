@@ -1767,8 +1767,6 @@ type TaskHandlerDeclarationBinding string
 
 const TaskHandlerDeclarationBindingPositional TaskHandlerDeclarationBinding = "positional"
 const TaskHandlerDeclarationBindingNamed TaskHandlerDeclarationBinding = "named"
-const TaskHandlerDeclarationBindingNamedOrWhole TaskHandlerDeclarationBinding = "named_or_whole"
-const TaskHandlerDeclarationBindingNamedOpen TaskHandlerDeclarationBinding = "named_open"
 
 // One parameter of a task handler.
 type TaskHandlerParam struct {
@@ -1778,12 +1776,11 @@ type TaskHandlerParam struct {
 	// Name corresponds to the JSON schema field "name".
 	Name interface{} `msgpack:"name"`
 
-	// Required corresponds to the JSON schema field "required".
-	Required bool `msgpack:"required"`
-
 	// ValueSchema corresponds to the JSON schema field "value_schema".
 	ValueSchema *ArgValueSchema `msgpack:"value_schema,omitempty"`
 }
+
+type TaskHandlerParams []TaskHandlerParam
 
 // A task handler that a Lang-SDK artifact registers for one task.
 type TaskHandlerDeclaration struct {
@@ -1791,7 +1788,7 @@ type TaskHandlerDeclaration struct {
 	Binding TaskHandlerDeclarationBinding `msgpack:"binding"`
 
 	// Params corresponds to the JSON schema field "params".
-	Params []TaskHandlerParam `msgpack:"params"`
+	Params *TaskHandlerParams `msgpack:"params"`
 
 	// TaskID corresponds to the JSON schema field "task_id".
 	TaskID string `msgpack:"task_id"`
