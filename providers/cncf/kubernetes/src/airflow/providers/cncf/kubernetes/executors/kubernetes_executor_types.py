@@ -105,7 +105,12 @@ TASK_INSTANCE_ID_ANNOTATION = "task_instance_id"
 
 
 def task_instance_id_from_pod(pod: k8s.V1Pod) -> UUID | None:
-    """Read immutable identity from an annotation or a pre-upgrade workload command."""
+    """
+    Read immutable identity from an annotation or a pre-upgrade workload command.
+
+    Pod templates can split the workload invocation between ``command`` and ``args``.
+    An invalid annotation is authoritative; falling back could attach a stale pod to another attempt.
+    """
     task_id = (pod.metadata.annotations or {}).get(TASK_INSTANCE_ID_ANNOTATION)
     if task_id is not None:
         try:
@@ -115,7 +120,7 @@ def task_instance_id_from_pod(pod: k8s.V1Pod) -> UUID | None:
     if pod.spec is None:
         return None
     for container in pod.spec.containers:
-        args = container.args or []
+        args = [*(container.command or []), *(container.args or [])]
         if "airflow.sdk.execution_time.execute_workload" not in args or "--json-string" not in args:
             continue
         try:

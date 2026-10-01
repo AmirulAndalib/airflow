@@ -4436,11 +4436,14 @@ class TestKubernetesExecutorUuid:
         assert not executor.running
         kube_client.patch_namespaced_pod.assert_not_called()
 
+    @pytest.mark.parametrize("command_length", [0, 3, 4, 5])
+    @pytest.mark.parametrize("pod_state", ["Failed", "Succeeded"])
     def test_watcher_recovers_pre_upgrade_uuid_from_pod_command(
-        self, uuid_workload, mocker, kubernetes_scheduler_factory
+        self, uuid_workload, mocker, kubernetes_scheduler_factory, command_length, pod_state
     ):
         executor = KubernetesExecutor()
         watcher = KubernetesJobWatcher("ns", Queue(), "0", "5", executor.kube_config, True)
+        command = pod_generator.workload_to_command_args(uuid_workload)
         pod = k8s.V1Pod(
             metadata=k8s.V1ObjectMeta(
                 name="old",
@@ -4451,10 +4454,12 @@ class TestKubernetesExecutorUuid:
             ),
             spec=k8s.V1PodSpec(
                 containers=[
-                    k8s.V1Container(name="base", args=pod_generator.workload_to_command_args(uuid_workload))
+                    k8s.V1Container(
+                        name="base", command=command[:command_length], args=command[command_length:]
+                    )
                 ]
             ),
-            status=k8s.V1PodStatus(phase="Failed"),
+            status=k8s.V1PodStatus(phase=pod_state),
         )
         mocker.patch.object(
             watcher, "_pod_events", autospec=True, return_value=[{"type": "MODIFIED", "object": pod}]
@@ -4465,6 +4470,59 @@ class TestKubernetesExecutorUuid:
         scheduler.process_watcher_task(watcher.watcher_queue.get_nowait())
 
         assert scheduler.result_queue.get_nowait().key == TaskInstanceUuid(uuid_workload.ti.id)
+
+    @pytest.mark.parametrize("command_length", [0, 3, 4, 5])
+    @pytest.mark.parametrize("matching_identity", [False, True])
+    def test_adoption_recovers_and_persists_pre_upgrade_uuid(
+        self, uuid_workload, mocker, command_length, matching_identity
+    ):
+        executor = KubernetesExecutor()
+        executor.scheduler_job_id = "5"
+        client = mocker.create_autospec(CoreV1Api, instance=True)
+        workload = (
+            uuid_workload
+            if matching_identity
+            else uuid_workload.model_copy(update={"ti": uuid_workload.ti.model_copy(update={"id": uuid4()})})
+        )
+        command = pod_generator.workload_to_command_args(workload)
+        metadata = k8s.V1ObjectMeta(
+            name="old",
+            namespace="ns",
+            annotations={"dag_id": "uuid_dag", "task_id": "task", "run_id": "run", "try_number": "1"},
+        )
+        pod = k8s.V1Pod(metadata=metadata)
+        client.read_namespaced_pod.return_value = k8s.V1Pod(
+            metadata=metadata,
+            spec=k8s.V1PodSpec(
+                containers=[
+                    k8s.V1Container(
+                        name="base", command=command[:command_length], args=command[command_length:]
+                    )
+                ]
+            ),
+        )
+        candidates = {uuid_workload.ti.key: uuid_workload.ti}
+
+        executor.adopt_launched_task(client, pod, candidates)
+
+        client.read_namespaced_pod.assert_called_once_with(name="old", namespace="ns")
+        if matching_identity:
+            client.patch_namespaced_pod.assert_called_once_with(
+                name="old",
+                namespace="ns",
+                body={
+                    "metadata": {
+                        "labels": {"airflow-worker": "5"},
+                        "annotations": {"task_instance_id": str(uuid_workload.ti.id)},
+                    }
+                },
+            )
+            assert not candidates
+            assert executor.running == {TaskInstanceUuid(uuid_workload.ti.id)}
+        else:
+            client.patch_namespaced_pod.assert_not_called()
+            assert candidates == {uuid_workload.ti.key: uuid_workload.ti}
+            assert not executor.running
 
     def test_watcher_ignores_uuid_annotation_in_coordinate_mode(
         self, uuid_workload, kubernetes_scheduler_factory
