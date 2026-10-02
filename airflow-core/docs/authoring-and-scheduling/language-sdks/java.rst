@@ -1161,7 +1161,8 @@ All ``kwargs`` in the ``coordinators`` config entry are passed to the
 
   * Set ``dag_bundle_name`` to load JARs from a configured Dag bundle, so they are delivered and
     versioned through the same bundle machinery as your Dags. The task uses the version that bundle
-    is on when it starts, pinned for the whole task.
+    is on when it starts, pinned for the whole task. If it names the task's own Dag bundle, the task
+    uses the version the run was created with.
   * Leave it unset (the default) to load JARs from the **task's own** Dag bundle, pinned to
     the version the run was created with.
 
